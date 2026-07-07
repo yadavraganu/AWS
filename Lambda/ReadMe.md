@@ -78,7 +78,6 @@ aws lambda publish-layer-version \
     --compatible-runtimes python3.9 python3.10 python3.11 \
     --region us-east-1
 ```
-
   * `--layer-name`: A unique name for your layer.
   * `--description`: A brief description of what the layer contains.
   * `--zip-file fileb://...`: Specifies the path to your zipped file. The `fileb://` prefix indicates that the content is a binary file.
@@ -86,7 +85,7 @@ aws lambda publish-layer-version \
   * `--region`: The AWS region where you want to create the layer.
 
 This command will output a JSON object containing details about the new layer version, including its **LayerVersionArn**. You'll need this ARN to attach the layer to a function.
-
+<br></br>
 # Lambda with VPC
 
 By default, AWS Lambda functions run in a VPC managed by AWS, not your own. You need to configure a function to run inside your own Virtual Private Cloud (VPC) to access resources that are not publicly available, like an Amazon Relational Database Service (RDS) database or an Amazon ElastiCache cluster.
