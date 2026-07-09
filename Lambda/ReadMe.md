@@ -205,54 +205,45 @@ aws lambda update-function-configuration \
 
 Managing **Lambda versioning and aliases** is essential for deploying and maintaining serverless applications across environments like **dev**, **test**, and **prod**. Here's how it works:
 
-### **Managing Multiple Versions of Lambda**
-
-#### What is a Version?
+**What is a Version?**
 - A **version** is a snapshot of your Lambda function code and configuration.
 - Once published, it’s **immutable** — you can't change the code or settings.
 - Useful for rollback, testing, and stable deployments.
 
-### How to Create a Version
-#### Console:
+**How to Create a Version**
+  
+**Console:**  
 1. Go to your Lambda function.
 2. Click **Actions → Publish new version**.
 3. Add a description and publish.
 
-#### CLI:
+**CLI:**  
 ```bash
 aws lambda publish-version --function-name my-function
 ```
-
-### **Using Aliases for Deployment Stages**
-
-#### What is an Alias?
+**What is an Alias?**
 - An **alias** is a pointer to a specific version of your Lambda function.
 - You can name aliases like `dev`, `test`, `prod`.
 - Aliases can be updated to point to new versions without changing the function name.
-
-### How to Create and Use Aliases
-#### Console:
+  
+**How to Create and Use Aliases**
+   
+**Console:**  
 1. Go to your Lambda function → **Aliases** tab.
 2. Click **Create alias**.
 3. Name it (e.g., `prod`) and choose a version.
-
-#### CLI:
+  
+**CLI:**  
 ```bash
-aws lambda create-alias \
-  --function-name my-function \
-  --name prod \
-  --function-version 5
+aws lambda create-alias --function-name my-function --name prod --function-version 5
 ```
-
-### Updating an Alias
+  
+**Updating an Alias**
 ```bash
-aws lambda update-alias \
-  --function-name my-function \
-  --name prod \
-  --function-version 6
+aws lambda update-alias --function-name my-function --name prod --function-version 6
 ```
-
-### **Benefits of Using Versions & Aliases**
+  
+**Benefits of Using Versions & Aliases**  
 - **Safe deployments**: Test new versions before updating `prod`.
 - **Blue/Green deployments**: Shift traffic gradually using alias weights.
 - **Rollback**: Quickly revert to a previous version.
