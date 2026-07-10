@@ -1,3 +1,41 @@
+# The Execution Environment
+An AWS Lambda execution environment is a secure, isolated micro-virtual machine powered by AWS Firecracker that manages the resources required to run your function.
+The lifecycle consists of three distinct phases managed completely by AWS
+
+   1. **INIT**: Lambda downloads the code, forks a microVM, boots the runtime, and runs static setup code.
+   2. **INVOKE**: Lambda executes your function's handler method to process the incoming event data.
+   3. **SHUTDOWN**: If no new traffic arrives, the runtime and any attached extensions are safely terminated.
+
+### Cold Start vs. Warm Start
+The concept of cold and warm starts dictating serverless performance is directly tied to this environment's lifecycle.
+
+| Metric / Step | Cold Start | Warm Start |
+|---|---|---|
+| Trigger Mechanism | First invocation or a sudden spike in scale. | High frequency, sequential back-to-back requests. |
+| Download Code | Yes (S3 or ECR container image). | No (already in memory). |
+| Boot Runtime | Yes (spins up Python, Node.js, JVM, etc.). | No (already running). |
+| Static / Init Code | Yes (runs code outside the main handler). | No (reuses the initialized memory state). |
+| Handler Execution | Yes (runs code inside the handler). | Yes (runs code inside the handler). |
+| Latency Impact | High (+100 ms to >1 second). | Minimal (low single-digit milliseconds). |
+
+### What is a Cold Start?
+A cold start happens when a function is invoked but there is no idle execution environment available. AWS must spin up a container completely from scratch. This typically occurs on the very first request, during function updates, or when scaling out horizontally to support simultaneous concurrent requests.
+### What is a Warm Start?
+After processing an invocation, AWS freezes the execution environment and retains it for a non-deterministic period (typically 5 to 45 minutes). If a subsequent request arrives while the container is frozen, Lambda thaws and reuses it. This completely skips the code download, runtime booting, and static initialization phases.
+
+### Key Execution Behavior to Remember
+
+* One Container, One Request: A single execution environment will never process multiple concurrent requests at the exact same millisecond. Concurrency scales by adding completely new containers, which causes simultaneous cold starts. 
+* State Preservation: Variables declared globally outside your handler function persist during a warm start. The temporary /tmp local directory also retains files between warm invocations. [1, 14] 
+* Billing Adjustments: AWS standardizes billing structures to charge for the time spent inside the INIT phase. Keeping initializations highly optimized directly limits your runtime costs. [3, 4, 18, 19, 20] 
+
+### Best Practices to Mitigate Cold Starts
+
+* **Initialize Globally**: Establish heavy elements like SDK clients, configurations, and database connections outside of the handler function. This isolates the performance penalty to the cold start phase only. [1, 14, 18] 
+* **Trim Package Sizes**: Only bundle the raw dependencies required for execution. Smaller zip or container payloads drastically reduce the time AWS spends downloading data from Amazon S3. [11, 18] 
+* **Utilize Provisioned Concurrency**: If your workload is highly latency-sensitive, you can pay AWS to keep a dedicated pool of environments permanently pre-warmed and ready to respond instantly. [9, 18] 
+* **Enable Lambda SnapStart**: For runtimes like Java, Python, or .NET, turn on AWS Lambda SnapStart. It caches a snapshot of the initialized microVM tier, improving startup performance up to 10x for free.
+
 # Layers
 AWS Lambda Layers are a way to package libraries, custom runtimes, and other dependencies to be used by multiple Lambda functions. They help to manage dependencies, reduce the size of your deployment package, and promote code sharing across your functions.
 
