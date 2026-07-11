@@ -35,6 +35,42 @@ After processing an invocation, AWS freezes the execution environment and retain
 * **Trim Package Sizes**: Only bundle the raw dependencies required for execution. Smaller zip or container payloads drastically reduce the time AWS spends downloading data from Amazon S3. [11, 18] 
 * **Utilize Provisioned Concurrency**: If your workload is highly latency-sensitive, you can pay AWS to keep a dedicated pool of environments permanently pre-warmed and ready to respond instantly. [9, 18] 
 * **Enable Lambda SnapStart**: For runtimes like Java, Python, or .NET, turn on AWS Lambda SnapStart. It caches a snapshot of the initialized microVM tier, improving startup performance up to 10x for free.
+<br></br>
+# Concurrency
+In AWS Lambda, concurrency is the number of in-flight requests that your function is executing at any given single moment. Every time your function is invoked, Lambda spins up a separate instance (execution environment) to handle that request.
+AWS provides two types of concurrency configurations to manage scaling, prevent system crashes, and optimize latency: Reserved Concurrency and Provisioned Concurrency .
+
+| Feature | Standard Concurrency | Reserved Concurrency | Provisioned Concurrency |
+|---|---|---|---|
+| Primary Purpose | Default auto-scaling | Cap scaling & guarantee capacity | Eliminate cold starts |
+| Max Cap Limit | Account limit (Default: 1,000) | Custom maximum cap | Up to the reserved amount |
+| Guaranteed Pool | None (shared pool) | Yes (exclusive to that function) | Yes (warmed execution environments) |
+| Cold Starts | Yes (on scale-up) | Yes (on scale-up) | No (pre-warmed up to the limit) |
+| Additional Cost | Free | Free | Paid (billed per second allocated) |
+
+### 1. Concurrency
+By default, all Lambda functions in a single AWS region share a single regional pool of 1,000 concurrent executions.
+
+* **How it works**: If Function A suddenly handles 950 concurrent requests, all other functions in your account are left with only 50 available slots.
+* **The Risk**: A single traffic spike or a rogue recursive loop in one minor function can exhaust your entire account quota, causing a denial of service (throttling) across your critical applications.
+
+### 2. Reserved Concurrency
+Reserved Concurrency allows you to dedicate a specific portion of your regional pool exclusively to a single function. It acts as both a floor (guaranteed minimum) and a ceiling (strict limit).
+
+* **Guarantees Capacity**: It saves a slice of your account pool for that function. No other function can steal this capacity, even if your account pool is exhausted.
+* **Limits Scale**: The function cannot scale past this number. If you reserve 50 units, any incoming 51st simultaneous request will be throttled.
+* **Use Cases**:
+* Protecting downstream systems like databases (e.g., stopping Lambda from overwhelming a MySQL DB that only allows 20 connections).
+   * Ensuring a highly critical API function always has available slots.
+
+### 3. Provisioned Concurrency
+Provisioned Concurrency initializes a requested number of execution environments ahead of time so they are always warm and ready to respond instantly.
+
+* **Eliminates Cold Starts**: Standard Lambda functions experience a lag ("cold start") when spinning up new environments. Provisioned concurrency completely removes this initialization latency.
+* **Concurrency**: You must apply this to a specific published Function Version or Alias (it cannot be applied to $LATEST).
+* **Handling Spikes**: If your provisioned concurrency is set to 100, the first 100 concurrent requests have zero cold start lag. If you hit 101, Lambda will still process the extra request using normal, standard scaling (which might experience a cold start).
+* **Use Cases**: Highly interactive, low-latency applications like web checkout APIs, mobile app entry points, or synchronous microservices where double-digit millisecond response times are mandatory.
+<br></br>
 
 # Layers
 AWS Lambda Layers are a way to package libraries, custom runtimes, and other dependencies to be used by multiple Lambda functions. They help to manage dependencies, reduce the size of your deployment package, and promote code sharing across your functions.
