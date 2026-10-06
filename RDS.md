@@ -1,30 +1,19 @@
-# Amazon RDS — Master Notes
-
-> Consolidated, interview-ready notes on Amazon RDS. Formatting standardized: `##` for top-level topics, `###`/`####` for sub-sections, tables for comparisons.
-
 ## Table of Contents
 
-**Foundational**
 1. [Introduction to RDS](#1-introduction-to-rds)
 2. [Creating Your First RDS Instance](#2-creating-your-first-rds-instance)
 3. [VPC, Subnets, and Security Groups](#3-vpc-subnets-and-security-groups)
 4. [Connecting to RDS](#4-connecting-to-rds)
 5. [Basic Operations](#5-basic-operations)
-
-**Intermediate — Administration & Performance**
 6. [Storage and Scaling](#6-storage-and-scaling)
 7. [Monitoring and Metrics](#7-monitoring-and-metrics)
 8. [Backups and Snapshots](#8-backups-and-snapshots)
 9. [Security and Access Control](#9-security-and-access-control)
 10. [Maintenance and Patching](#10-maintenance-and-patching)
-
-**Advanced — Optimization & High Availability**
 11. [Multi-AZ Deployments](#11-multi-az-deployments)
 12. [Read Replicas](#12-read-replicas)
 13. [Performance Tuning](#13-performance-tuning)
 14. [Cost Optimization](#14-cost-optimization)
-
-**Expert — Architecture & Automation**
 15. [Aurora Deep Dive](#15-aurora-deep-dive)
 16. [Disaster Recovery & DR Planning](#16-disaster-recovery--dr-planning)
 17. [Infrastructure as Code](#17-infrastructure-as-code)
